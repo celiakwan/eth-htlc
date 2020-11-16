@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-
 contract EthHashTimeLock {
-    using SafeMath for uint256;
-
-    address payable sender;
-    address payable recipient;
-    uint256 amount;
-    bytes32 hashlock;
-    uint256 timelock;
-    Status status;
+    address payable public sender;
+    address payable public recipient;
+    uint256 public amount;
+    bytes32 public hashlock;
+    uint256 public timelock;
+    Status public status;
 
     enum Status {
         INITIATED,
@@ -67,7 +63,6 @@ contract EthHashTimeLock {
 
     function withdraw(bytes32 _preimage) external withdrawable statusRemainsInitiated hashlockMatches(_preimage) {
         recipient.transfer(amount);
-        
         status = Status.WITHDRAWN;
 
         emit Withdrawal(sender, recipient, amount, _preimage);
@@ -75,7 +70,6 @@ contract EthHashTimeLock {
 
     function refund(bytes32 _preimage) external refundable statusRemainsInitiated hashlockMatches(_preimage) {
         sender.transfer(amount);
-
         status = Status.REFUNDED;
 
         emit Refund(sender, amount);
