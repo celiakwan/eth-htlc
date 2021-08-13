@@ -26,11 +26,11 @@ contract('EthHashTimeLock', accounts => {
             value: amount,
         });
 
-        assert.equal(initiate.logs[0].args.sender, sender, 'Correct sender account');
-        assert.equal(initiate.logs[0].args.recipient, recipient, 'Correct recipient account');
-        assert.equal(initiate.logs[0].args.amount, amount, 'Correct ETH amount');
-        assert.equal(initiate.logs[0].args.hashlock, hashlock, 'Correct hashlock');
-        assert.equal(initiate.logs[0].args.timelock, timelock, 'Correct timelock');
+        assert.equal(initiate.logs[0].args.sender, sender, 'Incorrect sender account');
+        assert.equal(initiate.logs[0].args.recipient, recipient, 'Incorrect recipient account');
+        assert.equal(initiate.logs[0].args.amount, amount, 'Incorrect ETH amount');
+        assert.equal(initiate.logs[0].args.hashlock, hashlock, 'Incorrect hashlock');
+        assert.equal(initiate.logs[0].args.timelock, timelock, 'Incorrect timelock');
 
         const initiateGasFee = await h.gasFee(initiate);
         expectedSenderBalance = expectedSenderBalance.sub(BN(amount)).sub(initiateGasFee);
@@ -38,8 +38,8 @@ contract('EthHashTimeLock', accounts => {
         const senderBalanceAfter = BN(await web3.eth.getBalance(sender));
         const recipientBalanceAfter = BN(await web3.eth.getBalance(recipient));
 
-        assert.equal(senderBalanceAfter.toString(), expectedSenderBalance.toString(), 'Correct balance of the sender account after initiation');
-        assert.equal(recipientBalanceAfter.toString(), expectedRecipientBalance.toString(), 'Correct balance of the recipient account after initiation');
+        assert.equal(senderBalanceAfter.toString(), expectedSenderBalance.toString(), 'Incorrect balance of the sender account after initiation');
+        assert.equal(recipientBalanceAfter.toString(), expectedRecipientBalance.toString(), 'Incorrect balance of the recipient account after initiation');
     });
 
     it('Recipient withdraws ETH with correct preimage', async () => {
@@ -55,10 +55,10 @@ contract('EthHashTimeLock', accounts => {
         // Assume recipient has obtained the preimage after sender withdrew coins in another blockchain
         const withdraw = await htlc.withdraw(preimage, {from: recipient});
 
-        assert.equal(withdraw.logs[0].args.sender, sender, 'Correct sender account');
-        assert.equal(withdraw.logs[0].args.recipient, recipient, 'Correct recipient account');
-        assert.equal(withdraw.logs[0].args.amount, amount, 'Correct ETH amount withdrawn');
-        assert.equal(withdraw.logs[0].args.preimage, h.leading0x(preimage.toString('hex')), 'Correct preimage');
+        assert.equal(withdraw.logs[0].args.sender, sender, 'Incorrect sender account');
+        assert.equal(withdraw.logs[0].args.recipient, recipient, 'Incorrect recipient account');
+        assert.equal(withdraw.logs[0].args.amount, amount, 'Incorrect ETH amount withdrawn');
+        assert.equal(withdraw.logs[0].args.preimage, h.leading0x(preimage.toString('hex')), 'Incorrect preimage');
 
         const withdrawGasFee = await h.gasFee(withdraw);
         expectedRecipientBalance = expectedRecipientBalance.add(BN(amount)).sub(withdrawGasFee);
@@ -66,8 +66,8 @@ contract('EthHashTimeLock', accounts => {
         const senderBalanceAfter = BN(await web3.eth.getBalance(sender));
         const recipientBalanceAfter = BN(await web3.eth.getBalance(recipient));
         
-        assert.equal(senderBalanceAfter.toString(), expectedSenderBalance.toString(), 'Correct balance of the sender account after withdrawal');
-        assert.equal(recipientBalanceAfter.toString(), expectedRecipientBalance.toString(), 'Correct balance of the recipient account after withdrawal');
+        assert.equal(senderBalanceAfter.toString(), expectedSenderBalance.toString(), 'Incorrect balance of the sender account after withdrawal');
+        assert.equal(recipientBalanceAfter.toString(), expectedRecipientBalance.toString(), 'Incorrect balance of the recipient account after withdrawal');
     });
 
     it('Sender refunds after timelock expires', async () => {
@@ -86,8 +86,8 @@ contract('EthHashTimeLock', accounts => {
         // Assume sender did not withdraw coins in another blockchain
         const refund = await htlc.refund(preimage, {from: sender});
 
-        assert.equal(refund.logs[0].args.sender, sender, 'Correct sender account');
-        assert.equal(refund.logs[0].args.amount, amount, 'Correct ETH amount refunded');
+        assert.equal(refund.logs[0].args.sender, sender, 'Incorrect sender account');
+        assert.equal(refund.logs[0].args.amount, amount, 'Incorrect ETH amount refunded');
 
         const refundGasFee = await h.gasFee(refund);
         expectedSenderBalance = BN(expectedSenderBalance).add(BN(amount)).sub(refundGasFee);
@@ -95,8 +95,8 @@ contract('EthHashTimeLock', accounts => {
         const senderBalanceAfter = BN(await web3.eth.getBalance(sender));
         const recipientBalanceAfter = BN(await web3.eth.getBalance(recipient));
 
-        assert.equal(senderBalanceAfter.toString(), expectedSenderBalance.toString(), 'Correct balance of the sender account after refund');
-        assert.equal(recipientBalanceAfter.toString(), expectedRecipientBalance.toString(), 'Correct balance of the recipient account after refund');
+        assert.equal(senderBalanceAfter.toString(), expectedSenderBalance.toString(), 'Incorrect balance of the sender account after refund');
+        assert.equal(recipientBalanceAfter.toString(), expectedRecipientBalance.toString(), 'Incorrect balance of the recipient account after refund');
     });
 
     it('Recipient withdraws ETH with incorrect preimage', async () => {

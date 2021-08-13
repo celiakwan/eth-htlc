@@ -1,77 +1,76 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity ^0.8.6;
 
 contract EthHashTimeLock {
-    address payable public sender;
-    address payable public recipient;
-    uint256 public amount;
-    bytes32 public hashlock;
-    uint256 public timelock;
-    Status public status;
+    address payable sender;
+    address payable recipient;
+    uint amount;
+    bytes32 hashlock;
+    uint timelock;
+    Status status;
 
     enum Status {
-        INITIATED,
-        WITHDRAWN,
-        REFUNDED
+        Initiated,
+        Withdrawn,
+        Refunded
     }
 
-    event Initiation(address indexed sender, address indexed recipient, uint256 amount, bytes32 hashlock, uint256 timelock);
+    event Initiation(address indexed sender, address indexed recipient, uint amount, bytes32 hashlock, uint timelock);
 
-    event Withdrawal(address indexed sender, address indexed recipient, uint256 amount, bytes32 preimage);
+    event Withdrawal(address indexed sender, address indexed recipient, uint amount, bytes32 preimage);
 
-    event Refund(address indexed sender, uint256 amount);
+    event Refund(address indexed sender, uint amount);
 
-    modifier initiable(uint256 _timelock) {
+    modifier initiable(uint _timelock) {
         require(msg.value > 0);
-        require(now < _timelock);
+        require(block.timestamp < _timelock);
         _;
     }
 
     modifier withdrawable() {
         require(msg.sender == recipient);
-        require(now <= timelock);
+        require(block.timestamp <= timelock);
         _;
     }
 
     modifier refundable() {
         require(msg.sender == sender);
-        require(now > timelock);
+        require(block.timestamp > timelock);
         _;
     }
 
     modifier statusRemainsInitiated() {
-        require(status == Status.INITIATED);
+        require(status == Status.Initiated);
         _;
     }
 
-    modifier hashlockMatches(bytes32 _preimage) {
+    modifier validHashlock(bytes32 _preimage) {
         require(sha256(abi.encodePacked(_preimage)) == hashlock);
         _;
     }
 
-    function initiate(address payable _recipient, bytes32 _hashlock, uint256 _timelock)
-    external payable initiable(_timelock) {
-        sender = msg.sender;
+    function initiate(address payable _recipient, bytes32 _hashlock, uint _timelock) external payable initiable(_timelock) {
+        sender = payable(msg.sender);
         recipient = _recipient;
         amount = msg.value;
         hashlock = _hashlock;
         timelock = _timelock;
-        status = Status.INITIATED;
+        status = Status.Initiated;
 
         emit Initiation(sender, recipient, amount, hashlock, timelock);
     }
 
-    function withdraw(bytes32 _preimage) external withdrawable statusRemainsInitiated hashlockMatches(_preimage) {
+    function withdraw(bytes32 _preimage) external withdrawable statusRemainsInitiated validHashlock(_preimage) {
+        status = Status.Withdrawn;
         recipient.transfer(amount);
-        status = Status.WITHDRAWN;
-
+        
         emit Withdrawal(sender, recipient, amount, _preimage);
     }
 
-    function refund(bytes32 _preimage) external refundable statusRemainsInitiated hashlockMatches(_preimage) {
+    function refund(bytes32 _preimage) external refundable statusRemainsInitiated validHashlock(_preimage) {
+        status = Status.Refunded;
         sender.transfer(amount);
-        status = Status.REFUNDED;
-
+        
         emit Refund(sender, amount);
     }
 }
