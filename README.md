@@ -28,23 +28,23 @@ npm install ganache-cli -g
 By default, Ganache will create 10 accounts and preload each with 100 ETH on your local blockchain network. If you want to connect to other Ethereum networks, you will need to update the Truffle configuration file `truffle-config.js`.
 
 ### Deployment
-1. Compile the smart contracts.
+1. Run a local testnet using Ganache.
+    ```
+    ganache-cli -p 7545
+    ```
+
+2. Compile the smart contracts.
     ```
     truffle compile
     ```
 
-2. Deploy the smart contracts.
+3. Deploy the smart contracts.
     ```
     truffle migrate
     ```
 
 ### Testing
-Start the Ganache CLI.
-```
-ganache-cli -p 7545
-```
-
-Run test cases for the HTLC in a new terminal.
+Run test cases for the HTLC.
 ```
 truffle test test/EthHashTimeLock.js
 ```
